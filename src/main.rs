@@ -1,6 +1,7 @@
+use glib::clone;
 use gtk::prelude::*;
-use gtk::{Application, ApplicationWindow, Button, glib};
-const APP_ID: &str = "org.gtk_rs.HelloWorld3";
+use gtk::{Application, ApplicationWindow, Button, FileDialog, Picture, gio, glib};
+const APP_ID: &str = "org.gtk_rs.ImageViewer";
 
 fn main() -> glib::ExitCode {
     // Create a new application
@@ -14,34 +15,39 @@ fn main() -> glib::ExitCode {
 }
 
 fn build_ui(app: &Application) {
-    // Create a button with label and margins
-    let button = Button::builder()
-        .label("Open file")
-        .width_request(100) // Make the button small
-        .height_request(40)
-        .build();
-
-    // Connect to "clicked" signal of `button`
-    button.connect_clicked(|button| {
-        // Set the label to "Hello World!" after the button has been clicked on
-        button.set_label("Hello World!");
-    });
-
-    // Center the button using a vertical Box
-    let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
-    vbox.set_valign(gtk::Align::Center);
-    vbox.set_halign(gtk::Align::Center);
-    vbox.append(&button);
-
-    // Create a window
     let window = ApplicationWindow::builder()
         .application(app)
-        .title("Image Viewer")
+        .title("Simple Image Viewer")
         .default_width(600)
         .default_height(400)
-        .child(&vbox)
         .build();
 
-    // Present window
+    let picture = Picture::new();
+
+    let button = Button::with_label("Open Image");
+    button.connect_clicked(clone!(
+        #[weak]
+        window,
+        #[weak]
+        picture,
+        move |_| {
+            let dialog = FileDialog::builder()
+                .title("Open File")
+                .accept_label("Open")
+                .build();
+
+            dialog.open(Some(&window), gio::Cancellable::NONE, move |file| {
+                if let Ok(file) = file {
+                    picture.set_file(Some(&file));
+                }
+            });
+        }
+    ));
+
+    let vbox = gtk::Box::new(gtk::Orientation::Vertical, 5);
+    vbox.append(&button);
+    vbox.append(&picture);
+
+    window.set_child(Some(&vbox));
     window.present();
 }
