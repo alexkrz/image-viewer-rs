@@ -28,3 +28,7 @@ cargo bundle --release
 ```
 
 This will create an `.app` bundle under `target/release/bundle/osx`.
+
+### Windows
+
+Installing GTK4 on Windows is a bad experience..
